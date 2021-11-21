@@ -13,11 +13,11 @@ export default function App() {
 
       <div className="dataContainer">
         <div className="header">
-        👋 Hey there!
+        <span role="img" aria-label="wave">👋</span> Hey there, gm!
         </div>
 
         <div className="bio">
-        I am farza and I worked on self-driving cars so that's pretty cool right? Connect your Ethereum wallet and wave at me!
+        I am Frank and I worked on some of the biggest entertainment websites in the world, pretty cool right? Connect your Ethereum wallet and wave at me!
         </div>
 
         <button className="waveButton" onClick={wave}>
