@@ -4,8 +4,21 @@ import './App.css';
 import abi from "./utils/WavePortal.json";
 
 const App = () => {
+/*
+  constructor(props) {
+    super(props);
+    this.state = {
+      error: null,
+      isLoaded: false,
+      totalWaves: "0",
+      mining: ""
+    };
+  }
+  */
   // State var to store user's public wallet address
   const [currentAccount, setCurrentAccount] = useState("");
+  const [totalWaves, setTotalWaves] = useState("");
+  const [mining, setMining] = useState("");
 
   const contractAddress = "0xFCCe5eb139258002932c231EB69c5c4557909aB2";
   const contractABI = abi.abi;
@@ -55,13 +68,33 @@ const App = () => {
 
   const wave = async () => {
     try {
+      const { ethereum } = window;
+
+      if (ethereum) {
         const provider = new ethers.providers.Web3Provider(window.ethereum);
         const signer = provider.getSigner();
         const wavePortalContract = new ethers.Contract(contractAddress, contractABI, signer);
 
+        // read contract
         let count = await wavePortalContract.getTotalWaves();
         console.log("Retrieved total wave count...", count.toNumber());
-       
+        setTotalWaves(count.toNumber());
+
+        // Wave / write to contract
+        const waveTxn = await wavePortalContract.wave();
+        console.log("Mining...", waveTxn.hash);
+        setMining(1)
+
+        await waveTxn.wait();
+        console.log("Mined ---", waveTxn.hash);
+        setMining("");
+
+        count = await wavePortalContract.getTotalWaves();
+        console.log("Retrieved total wave count...", count.toNumber());
+        setTotalWaves(count.toNumber())
+      } else {
+        console.log("Ethereum object not found");
+      }
     } catch (error) {
       console.log(error)
     }
@@ -85,11 +118,16 @@ const App = () => {
         <div className="bio">
         Hi, I'm Frank. I have worked on some of the biggest entertainment websites in the world, pretty cool right? Connect your Ethereum wallet and wave at me!
         <p>Just wanted to say thanks to Farza and all the buildspace team, you are doing amazing work!!</p>
+        <p>Total Waves from FRENS: {totalWaves}</p>
         </div>
 
         <button className="waveButton" onClick={wave}>
           Wave at Me
         </button>
+
+        {mining && (
+          <h2>Mining in Progress ...</h2>
+        )}
         {/*
         * if there is no currentAccount render this button
         */}
