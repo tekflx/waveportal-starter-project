@@ -10,7 +10,7 @@ const App = () => {
   const [allWaves, setAllWaves] = useState([]);
   const [message, setMess] = useState("");
 
-  const contractAddress = "0x576994aB2f8E4435BF10F96175Bfd22E4026CBD5";
+  const contractAddress = "0x0c5eCFCe96CFc9b58e75f9874A01729fA7d81C1D";
   const contractABI = abi.abi;
 
   let textInput = React.createRef();  // React use ref to get input value
@@ -60,6 +60,36 @@ const App = () => {
       console.log(error);
     }
   }
+
+  useEffect(() => {
+    let wavePortalContract;
+  
+    const onNewWave = (from, timestamp, message) => {
+      console.log('NewWave', from, timestamp, message);
+      setAllWaves(prevState => [
+        ...prevState,
+        {
+          address: from,
+          timestamp: new Date(timestamp * 1000),
+          message: message,
+        },
+      ]);
+    };
+  
+    if (window.ethereum) {
+      const provider = new ethers.providers.Web3Provider(window.ethereum);
+      const signer = provider.getSigner();
+  
+      wavePortalContract = new ethers.Contract(contractAddress, contractABI, signer);
+      wavePortalContract.on('NewWave', onNewWave);
+    }
+  
+    return () => {
+      if (wavePortalContract) {
+        wavePortalContract.off('NewWave', onNewWave);
+      }
+    };
+  }, []);
 
   const checkIfWalletIsConnected = async () => {
     try {
