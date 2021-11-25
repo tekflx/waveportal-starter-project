@@ -4,24 +4,54 @@ import './App.css';
 import abi from "./utils/WavePortal.json";
 
 const App = () => {
-/*
-  constructor(props) {
-    super(props);
-    this.state = {
-      error: null,
-      isLoaded: false,
-      totalWaves: "0",
-      mining: ""
-    };
-  }
-  */
+
   // State var to store user's public wallet address
   const [currentAccount, setCurrentAccount] = useState("");
   const [totalWaves, setTotalWaves] = useState("");
   const [mining, setMining] = useState("");
+  const [allWaves, setAllWaves] = useState([]);
 
-  const contractAddress = "0xFCCe5eb139258002932c231EB69c5c4557909aB2";
+  const contractAddress = "0x4105795adf114CBD8bd6da0bF7eF90200Fe6e85B";
   const contractABI = abi.abi;
+
+  const getAllWaves = async () => {
+    try {
+      const { ethereum } = window;
+      if (ethereum) {
+        const provider = new ethers.providers.Web3Provider(ethereum);
+        const signer = provider.getSigner();
+        const wavePortalContract = new ethers.Contract(contractAddress, contractABI, signer);
+
+        /*
+         * Call the getAllWaves method from your Smart Contract
+         */
+        const waves = await wavePortalContract.getAllWaves();
+
+        /*
+         * We only need address, timestamp, and message in our UI so let's pick those out
+         */
+        let wavesCleaned = [];
+        waves.forEach(wave => {
+          wavesCleaned.push({
+            address: wave.waver,
+            timestamp: new Date(wave.timestamp * 1000),
+            message: wave.message
+          });
+        });
+
+        /*
+         * Store our data in React State
+         */
+        setAllWaves(wavesCleaned);  
+
+      } else {
+        console.log("Eth object not found");
+      }
+
+    } catch (error) {
+      console.log(error);
+    }
+  }
 
   const checkIfWalletIsConnected = async () => {
     try {
@@ -30,9 +60,7 @@ const App = () => {
       if (!ethereum) {
         console.log("Make sure you have metamask!");
         return;
-      } else {
-        console.log("We have the ethereum object", ethereum);
-      }
+      } 
 
       // Check if we are authorized
       const accounts = await ethereum.request({ method: 'eth_accounts' });
@@ -40,6 +68,7 @@ const App = () => {
         const account = accounts[0];
         console.log("Found an authorized account:", account);
         setCurrentAccount(account);
+        getAllWaves();
       } else {
         console.log("No authorized account found");
       }
@@ -81,7 +110,7 @@ const App = () => {
         setTotalWaves(count.toNumber());
 
         // Wave / write to contract
-        const waveTxn = await wavePortalContract.wave();
+        const waveTxn = await wavePortalContract.wave("tmp fix message");
         console.log("Mining...", waveTxn.hash);
         setMining(1)
 
@@ -118,7 +147,6 @@ const App = () => {
         <div className="bio">
         Hi, I'm Frank. I have worked on some of the biggest entertainment websites in the world, pretty cool right? Connect your Ethereum wallet and wave at me!
         <p>Just wanted to say thanks to Farza and all the buildspace team, you are doing amazing work!!</p>
-        <p>Total Waves from FRENS: {totalWaves}</p>
         </div>
 
         <button className="waveButton" onClick={wave}>
@@ -137,6 +165,15 @@ const App = () => {
           </button>
 
         )}
+        {allWaves.map((wave, index) => {
+          return (
+            <div key={index} style={{ backgroundColor: "Oldlace", marginTop: "16px", padding: "8px"}}>
+              <div>Address: {wave.address}</div>
+              <div>Time: {wave.timestamp.toString()}</div>
+              <div>Message: {wave.message}</div>
+            </div>
+          )
+        })}
       </div>
    </div>
   );
