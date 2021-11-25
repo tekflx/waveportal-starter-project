@@ -148,8 +148,6 @@ const App = () => {
         
         await waveTxn.wait();
         console.log("Mined ---", waveTxn.hash);
-
-        getAllWaves();
              
       } else {
         console.log("Ethereum object not found");
