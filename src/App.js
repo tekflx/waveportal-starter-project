@@ -7,12 +7,20 @@ const App = () => {
 
   // State var to store user's public wallet address
   const [currentAccount, setCurrentAccount] = useState("");
-  const [totalWaves, setTotalWaves] = useState("");
-  const [mining, setMining] = useState("");
   const [allWaves, setAllWaves] = useState([]);
+  const [message, setMess] = useState("");
 
-  const contractAddress = "0x4105795adf114CBD8bd6da0bF7eF90200Fe6e85B";
+  const contractAddress = "0x576994aB2f8E4435BF10F96175Bfd22E4026CBD5";
   const contractABI = abi.abi;
+
+  let textInput = React.createRef();  // React use ref to get input value
+
+  let onOnclickHandler = (e) => {
+    console.log(textInput.current.value); 
+    setMess(textInput.current.value)
+    wave()
+    
+  };
 
   const getAllWaves = async () => {
     try {
@@ -104,23 +112,15 @@ const App = () => {
         const signer = provider.getSigner();
         const wavePortalContract = new ethers.Contract(contractAddress, contractABI, signer);
 
-        // read contract
-        let count = await wavePortalContract.getTotalWaves();
-        console.log("Retrieved total wave count...", count.toNumber());
-        setTotalWaves(count.toNumber());
-
-        // Wave / write to contract
-        const waveTxn = await wavePortalContract.wave("tmp fix message");
+         // Wave / write to contract
+        const waveTxn = await wavePortalContract.wave(textInput.current.value, { gasLimit: 300000});
         console.log("Mining...", waveTxn.hash);
-        setMining(1)
-
+        
         await waveTxn.wait();
         console.log("Mined ---", waveTxn.hash);
-        setMining("");
 
-        count = await wavePortalContract.getTotalWaves();
-        console.log("Retrieved total wave count...", count.toNumber());
-        setTotalWaves(count.toNumber())
+        getAllWaves();
+             
       } else {
         console.log("Ethereum object not found");
       }
@@ -148,14 +148,10 @@ const App = () => {
         Hi, I'm Frank. I have worked on some of the biggest entertainment websites in the world, pretty cool right? Connect your Ethereum wallet and wave at me!
         <p>Just wanted to say thanks to Farza and all the buildspace team, you are doing amazing work!!</p>
         </div>
-
-        <button className="waveButton" onClick={wave}>
-          Wave at Me
-        </button>
-
-        {mining && (
-          <h2>Mining in Progress ...</h2>
-        )}
+        
+        <iframe width="560" height="315" src="https://www.youtube.com/embed/Mu5ztL3oP8U" title="Wave for that ETH" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+        
+        
         {/*
         * if there is no currentAccount render this button
         */}
@@ -165,6 +161,19 @@ const App = () => {
           </button>
 
         )}
+        {currentAccount && (
+          <div>
+            <label>
+              Message:
+              <input type="text" ref={textInput} />
+            </label>
+            <button className="waveButton" onClick={onOnclickHandler}>
+              Wave at Me
+            </button>
+          </div>
+        )}
+
+        <h2>Buildspace Legends</h2>
         {allWaves.map((wave, index) => {
           return (
             <div key={index} style={{ backgroundColor: "Oldlace", marginTop: "16px", padding: "8px"}}>
